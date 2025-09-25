@@ -1,0 +1,29 @@
+{
+	"name": "dim_destino",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_dw_llamadas",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "DW_llamadas"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id_destino",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "numero_origen",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dim_destino"
+		}
+	}
+}
