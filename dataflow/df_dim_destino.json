@@ -1,0 +1,88 @@
+{
+	"name": "df_dim_destino",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "llamadas_tigo_csv",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dim_destino",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "select2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          DESCRIPCION as string,",
+				"          TIPO as string,",
+				"          NUMERO_ORIGEN as string,",
+				"          NUMERO_DESTINO as string,",
+				"          FECHA as string,",
+				"          HORA as string,",
+				"          DURACION as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 select(mapColumn(",
+				"          NUMERO_ORIGEN = NUMERO_DESTINO",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 derive(NUMERO_ORIGEN = trim(NUMERO_ORIGEN)) ~> derivedColumn1",
+				"derivedColumn1 derive(NUMERO_ORIGEN = iifNull(NUMERO_ORIGEN, \"NA\", NUMERO_ORIGEN)) ~> derivedColumn2",
+				"derivedColumn2 aggregate(groupBy(NUMERO_ORIGEN),",
+				"     each(match(name!='NUMERO_ORIGEN'), $$ = first($$))) ~> aggregate1",
+				"aggregate1 select(mapColumn(",
+				"          NUMERO_DESTINO = NUMERO_ORIGEN",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_destino as integer,",
+				"          numero_origen as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          numero_origen = NUMERO_DESTINO",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
