@@ -1,0 +1,175 @@
+{
+	"name": "df_hechos",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "llamadas_tigo_csv",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "dim_tipo",
+						"type": "DatasetReference"
+					},
+					"name": "dimTipo"
+				},
+				{
+					"dataset": {
+						"referenceName": "dim_origen",
+						"type": "DatasetReference"
+					},
+					"name": "dimOrigen"
+				},
+				{
+					"dataset": {
+						"referenceName": "dim_destino",
+						"type": "DatasetReference"
+					},
+					"name": "dimDestino"
+				},
+				{
+					"dataset": {
+						"referenceName": "dim_fecha",
+						"type": "DatasetReference"
+					},
+					"name": "dimFecha"
+				},
+				{
+					"dataset": {
+						"referenceName": "dim_hora",
+						"type": "DatasetReference"
+					},
+					"name": "dimHora"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "lookup2"
+				},
+				{
+					"name": "lookup3"
+				},
+				{
+					"name": "cast1"
+				},
+				{
+					"name": "lookup4"
+				},
+				{
+					"name": "cast2"
+				},
+				{
+					"name": "cast3"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "lookup5"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          DESCRIPCION as string,",
+				"          TIPO as string,",
+				"          NUMERO_ORIGEN as string,",
+				"          NUMERO_DESTINO as string,",
+				"          FECHA as string,",
+				"          HORA as string,",
+				"          DURACION as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source(output(",
+				"          id_tipo as integer,",
+				"          tipo as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimTipo",
+				"source(output(",
+				"          id_origen as integer,",
+				"          numero_origen as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimOrigen",
+				"source(output(",
+				"          id_destino as integer,",
+				"          numero_origen as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimDestino",
+				"source(output(",
+				"          id_fecha as integer,",
+				"          fecha as date,",
+				"          {año} as integer,",
+				"          mes as integer,",
+				"          trimestre as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimFecha",
+				"source(output(",
+				"          id_hora as integer,",
+				"          hora as timestamp,",
+				"          hora24 as integer,",
+				"          hora12 as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> dimHora",
+				"source1, dimTipo lookup(source1@TIPO == dimTipo@tipo,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1, dimOrigen lookup(source1@NUMERO_ORIGEN == dimOrigen@numero_origen,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup2",
+				"lookup2, dimDestino lookup(NUMERO_DESTINO == dimDestino@numero_origen,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup3",
+				"lookup3 cast(output(",
+				"          FECHA as date 'dd/MM/yyyy'",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1, dimFecha lookup(cast1@FECHA == dimFecha@fecha,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup4",
+				"lookup4 cast(output(",
+				"          DURACION as integer",
+				"     ),",
+				"     errors: true) ~> cast2",
+				"dimHora cast(output(",
+				"          hora as string",
+				"     ),",
+				"     errors: true) ~> cast3",
+				"cast3 derive(hora = substring(hora, 11, 10)",
+				") ~> derivedColumn1",
+				"cast2, derivedColumn1 lookup(source1@HORA == derivedColumn1@hora,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup5"
+			]
+		}
+	}
+}
