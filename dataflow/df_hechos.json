@@ -74,6 +74,9 @@
 					"name": "derivedColumn1"
 				},
 				{
+					"name": "derivedColumn2"
+				},
+				{
 					"name": "lookup5"
 				}
 			],
@@ -165,7 +168,8 @@
 				"     errors: true) ~> cast3",
 				"cast3 derive(hora = substring(hora, 11, 10)",
 				") ~> derivedColumn1",
-				"cast2, derivedColumn1 lookup(source1@HORA == derivedColumn1@hora,",
+				"cast2 derive(HORA = trim(HORA)) ~> derivedColumn2",
+				"derivedColumn2, derivedColumn1 lookup(derivedColumn2@HORA == derivedColumn1@hora,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup5"
