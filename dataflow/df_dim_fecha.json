@@ -61,6 +61,7 @@
 				"     input(",
 				"          id_fecha as integer,",
 				"          fecha as date,",
+				"          fecha_texto as string,",
 				"          {año} as integer,",
 				"          mes as integer,",
 				"          trimestre as integer",
