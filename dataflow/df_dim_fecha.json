@@ -30,6 +30,9 @@
 				},
 				{
 					"name": "aggregate1"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -50,12 +53,14 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1 cast(output(",
+				"derivedColumn1 cast(output(",
 				"          FECHA as date 'dd/MM/yyyy'",
 				"     ),",
 				"     errors: true) ~> cast1",
 				"cast1 aggregate(groupBy(FECHA),",
 				"     each(match(name!=\"FECHA\"), $$ = first($$))) ~> aggregate1",
+				"select1 derive(FECHA = trim(FECHA),",
+				"          FECHA_TEXTO = FECHA) ~> derivedColumn1",
 				"aggregate1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -75,7 +80,8 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          fecha = FECHA",
+				"          fecha = FECHA,",
+				"          fecha_texto = FECHA_TEXTO",
 				"     )) ~> sink1"
 			]
 		}
